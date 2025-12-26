@@ -2,9 +2,9 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import {io, server, app} from './utils/socket.js';
 dotenv.config();
 
-const app = express();
 app.use(
   cors({
        origin: [
@@ -37,7 +37,7 @@ app.use('/api', getUserRoutes);
 import messageRoutes from './routes/chat.routes.js';
 app.use('/api', messageRoutes);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 

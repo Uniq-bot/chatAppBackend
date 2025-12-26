@@ -1,32 +1,28 @@
 import Chat from "../models/chat.model.js";
 import cloudinary from "../utils/cloudinary.js";
+import { getRecieverSocketId } from "../utils/socket.js";
+import { io } from '../utils/socket.js';
 export const sendChatMessage = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text } = req.body;
     const senderId = req.user.id;
     const { id: receiverId } = req.params;
     if (!text) {
       return res.status(400).json({ message: "Message text is required" });
     }
-    let imageUrl = null;
-    if (image) {
-      // send image to cloudinary and get the url
-      const uploadRes = await cloudinary.uploader.upload(image, {
-        folder: "chatApp/images",
-        resource_type: "image",
-      });
-      imageUrl = uploadRes.secure_url;
-    }
+   
     const newMessage = new Chat({
-      sender: senderId,
+      senderId: senderId,
       receiver: receiverId,
       message: text,
-      image: imageUrl,
     });
     await newMessage.save();
 
     // real time via sockets can be implemented here
-
+      const receiverSocketId = getRecieverSocketId(receiverId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("newMessage", newMessage);
+      }
     return res
       .status(200)
       .json({ message: "Message sent successfully", newMessage });
@@ -51,16 +47,16 @@ export const getMessagesOfID = async (req, res) => {
       $or: [
         {
           senderId: myId,
-          receiverId: userTochatId,
+          receiver: userTochatId,
         },
         {
           senderId: userTochatId,
-          receiverId: myId,
+          receiver: myId,
         },
       ],
-    });
+    }).sort({ createdAt: 1 });
     res.status(200).json({ messages });
-    console.log(messages)
+    console.log("messages", messages)
   } catch (error) {
     console.log(error);
     res
