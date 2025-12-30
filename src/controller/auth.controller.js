@@ -38,6 +38,61 @@ export const loginUser= async(req, res)=>{
         console.log(error)
     }
 };
+import { Group } from '../models/group.model.js';
+export const createGroup=async(req, res)=>{
+    try {
+      const {name}= req.body;
+      const userId= req.user.id;
+      
+      let imageUrl = null;
+      
+      // Upload image to cloudinary if provided
+      if (req.file) {
+        const b64 = Buffer.from(req.file.buffer).toString("base64");
+        const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+        const uploadResult = await cloudinary.uploader.upload(dataURI, {
+          folder: "group_images",
+        });
+        imageUrl = uploadResult.secure_url;
+      }
+      
+      const newGroup= new Group({
+          name: name,
+          image: imageUrl,
+          members: [userId],
+          admin: userId,
+      });
+      await newGroup.save();
+      res.status(201).send({message: "Group created successfully", group: newGroup});
+
+
+      
+    } catch (error) {
+      res.status(500).send({message: "Error in creating group", error: error.message});
+      console.log(error)
+      
+    }
+}
+
+export const joinGroup= async(req, res)=>{
+    try {
+      const {groupId}= req.params;
+      const userId= req.user.id;
+      const group= await Group.findById(groupId);
+      if(!group){
+          return res.status(404).send({message: "Group not found"});
+      }
+      if(group.members.includes(userId)){
+          return res.status(400).send({message: "User already a member of the group"});
+      }
+      group.members.push(userId);
+      await group.save();
+      res.status(200).send({message: "Joined group successfully", group});
+    } catch (error) {
+      res.status(500).send({message: "Error in joining group", error: error.message});
+      console.log(error);
+    }
+}
 
 export const updateProfile = async (req, res) => {
   try {

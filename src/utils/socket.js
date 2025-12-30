@@ -27,6 +27,11 @@ io.on("connection", (socket) => {
         userSocketMap[userId]=socket.id;
     }
     io.emit('onlineUsers', Object.keys(userSocketMap));
+    // listen to group join from frontend
+    socket.on('joinGroup',(groupId)=>{
+        socket.join(groupId);
+        console.log(`user ${userId} joined ${groupId} successfully`)
+    })
 
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);

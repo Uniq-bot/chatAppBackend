@@ -7,14 +7,18 @@ dotenv.config();
 
 app.use(
   cors({
-       origin: [
+    origin: [
       "http://localhost:3000",
-      "http://172.28.16.1:3000"
+      "http://192.168.56.1:3000"
     ],
-    credentials: true,              // allow cookies
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 app.use(express.json());
+
+app.set('io', io);
 
 const PORT = process.env.PORT || 5000;
 
@@ -36,6 +40,10 @@ app.use('/api', getUserRoutes);
 // message routes
 import messageRoutes from './routes/chat.routes.js';
 app.use('/api', messageRoutes);
+
+//group search routes
+import getGroupRoutes from './routes/getGroup.routes.js';
+app.use('/api/groups', getGroupRoutes);
 
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
