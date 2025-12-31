@@ -3,6 +3,7 @@ import cloudinary from "../utils/cloudinary.js";
 import { getRecieverSocketId } from "../utils/socket.js";
 import { io } from '../utils/socket.js';
 import { GroupChat } from "../models/groupChat.model.js";
+import User from "../models/user.models.js";
 export const sendGroupMessage= async (req, res) => {
   try {
     const {content}= req.body;
@@ -67,6 +68,18 @@ export const sendChatMessage = async (req, res) => {
     });
     await newMessage.save();
 
+    // Add users to each other's contacts if not already added
+    await User.findByIdAndUpdate(
+      senderId,
+      { $addToSet: { contacts: receiverId } },
+      { new: true }
+    );
+    await User.findByIdAndUpdate(
+      receiverId,
+      { $addToSet: { contacts: senderId } },
+      { new: true }
+    );
+
     // Populate sender info
     const populatedMessage = await newMessage.populate('senderId', 'name pic email');
 
@@ -129,5 +142,21 @@ export const getMessagesOfID = async (req, res) => {
     res
       .status(500)
       .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const getContacts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).populate('contacts', 'name pic email');
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    res.status(200).json({ contacts: user.contacts });
+  } catch (error) {
+    console.error('Error fetching contacts:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };

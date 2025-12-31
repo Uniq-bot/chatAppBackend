@@ -22,6 +22,10 @@ const userSchema= new mongoose.Schema({
         default: "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
 
     },
+    contacts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    }],
     isAdmin:{
         type:Boolean,
         default:false,
