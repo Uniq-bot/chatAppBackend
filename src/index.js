@@ -10,7 +10,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "http://192.168.56.1:3000",
-      "https://chat-app-frontend-sand-mu.vercel.app"
+      "https://chat-app-frontend-fmic.vercel.app"
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
